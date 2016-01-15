@@ -1,7 +1,18 @@
 require 'byebug'
+
 class Board
-  attr_reader :letters
   attr_reader :margin
+
+  WIN_CONDITIONS ||= [
+    [ [0,0], [1,0], [2,0] ], # top row
+    [ [0,1], [1,1], [2,1] ], # middle row
+    [ [0,2], [1,2], [2,2] ], # bottom row
+    [ [0,0], [0,1], [0,2] ], # left column
+    [ [1,0], [1,1], [1,2] ], # middle column
+    [ [2,0], [2,1], [2,2] ], # right column
+    [ [0,0], [1,1], [2,2] ], # diagonal top left
+    [ [2,0], [1,1], [0,2] ], # diagonal bottom left
+  ]
 
   def initialize(w, h)
     @w = w
@@ -14,78 +25,8 @@ class Board
 
   def draw
     draw_grid
-    draw_letters
+    @squares.each(&:draw)
     draw_winning_strike
-  end
-
-  def compute_winning_strike_coords
-    msq = square_size / 2
-    x1 = nil
-    x2 = nil
-    y1 = nil
-    y2 = nil
-
-    # rows
-    if is_match?(rows[0])
-      x1 = left_box_x + margin
-      y1 = top_box_y + msq
-      x2 = right_box_x + square_size - margin
-      y2 = y1
-    end
-
-    if is_match?(rows[1])
-      x1 = left_box_x + margin
-      y1 = middle_box_y + msq
-      x2 = right_box_x + square_size - margin
-      y2 = y1
-    end
-
-    if is_match?(rows[2])
-      x1 = left_box_x + margin
-      y1 = bottom_box_y + msq
-      x2 = right_box_x + square_size - margin
-      y2 = y1
-    end
-
-    # cols
-    if is_match?(columns[0])
-      x1 = left_box_x + msq
-      y1 = top_box_y + margin
-      x2 = x1
-      y2 = bottom_box_y + square_size - margin
-    end
-
-    if is_match?(columns[1])
-      x1 = middle_box_x + msq
-      y1 = top_box_y + margin
-      x2 = x1
-      y2 = bottom_box_y + square_size - margin
-    end
-
-    if is_match?(columns[2])
-      x1 = right_box_x + msq
-      y1 = top_box_y + margin
-      x2 = x1
-      y2 = bottom_box_y + square_size - margin
-    end
-
-    if is_match?(diagonal1)
-      x1 = left_box_x + msq - margin*2
-      y1 = top_box_y + msq - margin*2
-      x2 = right_box_x + msq + margin*2
-      y2 = bottom_box_y + msq + margin*2
-    end
-
-    if is_match?(diagonal2)
-      x1 = right_box_x + msq + margin*2
-      y1 = top_box_y + msq - margin*2
-      x2 = left_box_x + msq - margin*2
-      y2 = bottom_box_y + msq + margin*2
-    end
-
-    if x1 && y1 && x2 && y2
-      @strike_points = [x1, y1, x2, y2]
-    end
   end
 
   def draw_winning_strike
@@ -97,49 +38,27 @@ class Board
     end
   end
 
-  def is_match?(group)
-    return false if group.length < 3
-    return false if group.length != group.compact.length
-    group.all? {|g| g == group.first }
-  end
-
-  def rows
-    @letters
-  end
-
-  def columns
-    @letters.transpose
-  end
-
-  def diagonal1
-    d = []
-    @letters.count.times do |i|
-      d << @letters[i][i]
-    end
-    d
-  end
-
-  def diagonal2
-    d = []
-    @letters.count.times do |i|
-      d << @letters[@letters.count-1-i][i]
-    end
-    d
-  end
-
   def check_win?
-    is_win = rows.any? {|r| is_match?(r)} ||
-      columns.any? {|c| is_match?(c)} ||
-      is_match?(diagonal1) ||
-      is_match?(diagonal2)
+    winning_squares = WIN_CONDITIONS.select {|wc|
+      squares = wc.map {|coords| square_at(*coords)}
+      letters = squares.map(&:letter)
+      !letters.any?(&:nil?) && letters.uniq.length == 1
+    }.first
 
-    if is_win
-      compute_winning_strike_coords
+    if winning_squares
+      squares = winning_squares.map {|c| square_at(*c) }
+      @strike_points = [
+        squares.first.center_point,
+        squares.last.center_point
+      ].flatten
+      true
+    else
+      false
     end
   end
 
   def full?
-    @letters.flatten.length == @letters.flatten.compact.length
+    @squares.all?(&:occupied?)
   end
 
   def draw_grid
@@ -152,11 +71,10 @@ class Board
     Gosu.draw_line x2, top, @color, x2, bottom, @color
     Gosu.draw_line left, y1, @color, right, y1, @color
     Gosu.draw_line left, y2, @color, right, y2, @color
-
   end
 
   def square_size
-    @w / 3 - @margin / 2
+    (@w - @margin * 2) / 3
   end
 
   def left_box_x
@@ -164,11 +82,11 @@ class Board
   end
 
   def middle_box_x
-    @w / 2 - square_size / 2
+    square_at(1, 0).window_coordinates[0]
   end
 
   def right_box_x
-    middle_box_x + square_size
+    square_at(2, 0).window_coordinates[0]
   end
 
   def top_box_y
@@ -176,52 +94,26 @@ class Board
   end
 
   def middle_box_y
-    @h / 2 - square_size / 2
+    square_at(0, 1).window_coordinates[1]
   end
 
   def bottom_box_y
-    middle_box_y + square_size
-  end
-
-  def compute_center_coords
-    msq = square_size / 2
-    [
-      [
-        [left_box_x + msq, top_box_y + msq],
-        [middle_box_x + msq, top_box_y + msq],
-        [right_box_x + msq, top_box_y + msq]
-      ],
-      [
-        [left_box_x + msq, middle_box_y + msq],
-        [middle_box_x + msq, middle_box_y + msq],
-        [right_box_x + msq, middle_box_y + msq]
-      ],
-      [
-        [left_box_x + msq, bottom_box_y + msq],
-        [middle_box_x + msq, bottom_box_y + msq],
-        [right_box_x + msq, bottom_box_y + msq]
-      ]
-    ]
-  end
-
-  def draw_letters
-    centers = compute_center_coords
-    @letters.each_with_index do |y_row, y|
-      y_row.each_with_index do |letter, x|
-        next unless letter
-        letter_pos = centers[y][x]
-        @font.draw_rel letter, letter_pos[0], letter_pos[1], 0, 0.5, 0.5, 1, 1, Gosu::Color::RED
-      end
-    end
+    square_at(0, 2).window_coordinates[1]
   end
 
   def clear
+    @squares = generate_board
     @strike_points = nil
-    @letters = [
-      [nil, nil, nil],
-      [nil, nil, nil],
-      [nil, nil, nil]
-    ]
+  end
+
+  def generate_board
+    9.times.map do |i|
+      bx = i % 3
+      by = i.div(3)
+      wx = bx * square_size + margin
+      wy = by * square_size + margin
+      Square.new([bx, by], [wx, wy], square_size)
+    end
   end
 
   def coords_from_point(x, y)
@@ -241,18 +133,16 @@ class Board
     [cx, cy]
   end
 
-  def empty?(x, y)
-    coords = coords_from_point(x, y)
-    cx = coords[0]
-    cy = coords[1]
-    letter[cy][cx].nil?
-  end
-
   def mark_letter(letter, x, y)
     coords = coords_from_point(x, y)
     cx = coords[0]
     cy = coords[1]
-    @letters[cy][cx] = letter
+    sq = square_at(cx, cy)
+    sq.mark_letter(letter) unless sq.occupied?
+  end
+
+  def square_at(x, y)
+    @squares.select {|s| s.board_coordinates == [x,y]}.first
   end
 
   def left
@@ -271,3 +161,4 @@ class Board
     @w - @margin
   end
 end
+

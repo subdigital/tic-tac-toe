@@ -1,5 +1,7 @@
 require 'gosu'
 require 'hasu'
+
+Hasu.load("square.rb")
 Hasu.load("board.rb")
 
 class Game < Hasu::Window
