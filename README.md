@@ -6,17 +6,23 @@ A tic-tac-toe game, written in Ruby using Gosu.
 
 ## Running the game
 
-It requires [gosu](https://www.libgosu.org) to run. To install gosu:
+It requires [gosu](https://www.libgosu.org) and [Hasu]()https://github.com/michaelfairley/hasu to run. To install them:
 
 ```
 gem install gosu
+gem install hasu
 ```
 
-Once gosu is installed, just run it with ruby:
+Once the gems are installed, just run it with ruby:
 
 ```
 ruby game.rb
 ```
+
+## Live Reload
+
+Hasu supports live reload, so you can keep the game running and just make edits, all while not changing the entirety of game state, which can be useful for tweaking.:w
+
 
 ## Gameplay
 
