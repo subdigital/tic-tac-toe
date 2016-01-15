@@ -6,7 +6,7 @@ A tic-tac-toe game, written in Ruby using Gosu.
 
 ## Running the game
 
-It requires [gosu](https://www.libgosu.org) and [Hasu]()https://github.com/michaelfairley/hasu to run. To install them:
+It requires [gosu](https://www.libgosu.org) and [Hasu](https://github.com/michaelfairley/hasu) to run. To install them:
 
 ```
 gem install gosu
