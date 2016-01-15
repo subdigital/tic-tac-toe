@@ -18,9 +18,8 @@ class Board
     draw_winning_strike
   end
 
-  def draw_winning_strike
+  def compute_winning_strike_coords
     msq = square_size / 2
-    c = Gosu::Color::RED
     x1 = nil
     x2 = nil
     y1 = nil
@@ -84,7 +83,16 @@ class Board
       y2 = bottom_box_y + msq + margin*2
     end
 
+    if x1 && y1 && x2 && y2
+      @strike_points = [x1, y1, x2, y2]
+    end
+  end
+
+  def draw_winning_strike
+    return unless @strike_points
+    x1, y1, x2, y2 = @strike_points
     if x1 && x2 && y1 && y2
+      c = Gosu::Color::RED
       Gosu.draw_line x1, y1, c, x2, y2, c
     end
   end
@@ -120,10 +128,14 @@ class Board
   end
 
   def check_win?
-    rows.any? {|r| is_match?(r)} ||
+    is_win = rows.any? {|r| is_match?(r)} ||
       columns.any? {|c| is_match?(c)} ||
       is_match?(diagonal1) ||
       is_match?(diagonal2)
+
+    if is_win
+      compute_winning_strike_coords
+    end
   end
 
   def full?
@@ -204,6 +216,7 @@ class Board
   end
 
   def clear
+    @strike_points = nil
     @letters = [
       [nil, nil, nil],
       [nil, nil, nil],
