@@ -21,7 +21,7 @@ ruby game.rb
 
 ## Live Reload
 
-Hasu supports live reload, so you can keep the game running and just make edits, all while not changing the entirety of game state, which can be useful for tweaking.:w
+Hasu supports live reload, so you can keep the game running and just make edits, all while not changing the entirety of game state, which can be useful for tweaking.
 
 
 ## Gameplay
