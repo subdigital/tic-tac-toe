@@ -136,7 +136,12 @@ class Board
     cx = coords[0]
     cy = coords[1]
     sq = square_at(cx, cy)
-    sq.mark_letter(letter) unless sq.occupied?
+    if sq.occupied?
+      false
+    else
+      sq.mark_letter(letter)
+      true
+    end
   end
 
   def square_at(x, y)

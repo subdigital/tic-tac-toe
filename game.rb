@@ -42,9 +42,10 @@ class Game < Hasu::Window
     when :new_game, :cats_game, :winner
       start_game
     when :playing
-      @board.mark_letter @current_letter, mouse_x, mouse_y
-      check_win? || full_board?
-      swap_letter
+      if @board.mark_letter @current_letter, mouse_x, mouse_y
+        check_win? || full_board?
+        swap_letter
+      end
     end
   end
 
