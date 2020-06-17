@@ -15,7 +15,7 @@ class Game < Hasu::Window
   def reset
     @state = :new_game
     @board = Board.new(width, height)
-    @cursor = Gosu::Image.new(self, 'cursor.png')
+    @cursor = Gosu::Image.new('cursor.png',tileable=false)
     @current_letter = "X"
   end
 
@@ -79,13 +79,13 @@ class Game < Hasu::Window
     case @state
     when :new_game
       font = Gosu::Font.new(25)
-      font.draw_rel("Click to start a new game", width/2, height/2, 0, 0.5, 0.5, 1, 1, Gosu::Color::RED)
+      font.draw_text_rel("Click to start a new game", width/2, height/2, 0, 0.5, 0.5, 1, 1,  Gosu::Color::RED)
     when :winner
       font = Gosu::Font.new(40)
-      font.draw_rel("#{@winner} is the WINNER!!!!!", width / 2, height / 2, 0, 0.5, 0.5, 1, 1, Gosu::Color::GREEN)
+      font.draw_text_rel("#{@winner} is the WINNER!!!!!", width / 2, height / 2, 0, 0.5, 0.5, 1, 1, Gosu::Color::GREEN)
     when :cats_game
       font = Gosu::Font.new(40)
-      font.draw_rel("CAT'S GAME :(", width / 2, height / 2, 0, 0.5, 0.5, 1, 1, Gosu::Color::BLUE)
+      font.draw_text_rel("CAT'S GAME :(", width / 2, height / 2, 0, 0.5, 0.5, 1, 1, Gosu::Color::BLUE)
     when :playing
     end
   end

@@ -25,7 +25,7 @@ class Square
 
   def draw
     if letter
-      @font.draw_rel letter, center_point[0], center_point[1], 0, 0.5, 0.5, 1, 1, Gosu::Color::RED
+      @font.draw_text_rel(letter, center_point[0], center_point[1], 0, 0.5, 0.5, 1, 1, Gosu::Color::RED)
     end
   end
 end
